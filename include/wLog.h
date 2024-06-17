@@ -5,10 +5,13 @@
 #include <algorithm>
 #include <ios>
 #include <iomanip>
+#include <mutex>
+#include <queue>
 
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <stdarg.h>
 // 文字颜色
 #define ANSI_COLOR_RESET "\e[0m"
 #define ANSI_COLOR_BLACK "\e[30m"
@@ -46,13 +49,27 @@ class Wlogger
 {
 public:
     static Wlogger *get_instance();
+    void log(const char *fmt, ...);
 
 private:
     void init_log_config();
     void print_config_info();
+    std::string get_log_switch() const;
+
+    std::string get_log_file_switch() const;
+    std::string get_log_terminal_switch() const;
+
+    std::string get_file_path_name() const;
+
+    void write_log_to_file(const char *fmt, va_list args);
+
+    void insert_queue(const char *buf);
 
 private:
+    std::mutex fileLock_;
     Logger logger;
+
+    std::queue<std::string> messageQueue_;
 
 private:
     Wlogger();

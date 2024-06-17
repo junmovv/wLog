@@ -1,5 +1,8 @@
 #include "wLog.h"
 
+const char *leverStr[5] =
+    {"[ERR]", "[WARN]", "[INFO]", "[DEBUG]", "[TRACE]"};
+
 Wlogger *Wlogger::get_instance()
 {
     static Wlogger singleObject;
@@ -107,16 +110,88 @@ std::string LogCapture::get_log_time()
     return time_str;
 }
 
+std::string Wlogger::get_log_switch() const
+{
+    return logger.logSwitch;
+}
+
+std::string Wlogger::get_log_file_switch() const
+{
+    return logger.logFileSwitch;
+}
+
+std::string Wlogger::get_log_terminal_switch() const
+{
+    return logger.logTerminalSwitch;
+}
+
+std::string Wlogger::get_file_path_name() const
+{
+    return logger.logFilePath + "/" + logger.logName + ".log ";
+}
+
+void Wlogger::write_log_to_file(const char *fmt, va_list args)
+{
+    char buf[4096] = {0};
+    vsnprintf(buf, sizeof(buf), fmt, args);
+
+    if (logger.logFileQueueSwitch == "on")
+    {
+        insert_queue(buf);
+    }
+    else
+    {
+        std::string filePashAndName = get_file_path_name();
+        std::lock_guard<std::mutex> locker(fileLock_);
+        std::ofstream file;
+        file.open(filePashAndName, std::ios::app | std::ios::out);
+        file << buf;
+        file.close();
+    }
+}
+
+void Wlogger::insert_queue(const char *buf)
+{
+    std::lock_guard<std::mutex> locker(fileLock_);
+    messageQueue_.push(buf);
+    if (messageQueue_.size() > 5000)
+    {
+        std::string filePashAndName = get_file_path_name();
+        std::ofstream file;
+        file.open(filePashAndName, std::ios::app | std::ios::out);
+        while (!messageQueue_.empty())
+        {
+            file << messageQueue_.front();
+            messageQueue_.pop();
+        }
+        file.close();
+    }
+}
+void Wlogger::log(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    if (get_log_terminal_switch() == "on")
+    {
+        vprintf(fmt, args);
+    }
+
+    if (get_log_file_switch() == "on")
+    {
+        write_log_to_file(fmt, args);
+    }
+
+    va_end(args);
+}
 std::string LogCapture::get_file_line_func()
 {
     std::ostringstream ostr;
-    ostr << "[" << file_ << ":" << line_ << "]" << "[" << func_ << "]";
+    ostr << "[" << file_ << ":" << line_ << "]" << "[" << func_ << "] ";
     return ostr.str();
 }
 
 LogCapture::~LogCapture()
 {
-    sstream_ << "[INFO]" << get_log_time() << get_file_line_func() << std::endl;
-    // Logger::Instance()->Log(level_, "[%s:%d][%s] %s", file_.c_str(), line_, function_.c_str(), sstream_.str().c_str());
-    std::cout << sstream_.str();
+    std::string str = leverStr[static_cast<unsigned char>(level_)] + get_log_time() + get_file_line_func() + sstream_.str() + "\n";
+    Wlogger::get_instance()->log(str.c_str());
 }
