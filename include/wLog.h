@@ -2,11 +2,31 @@
 #include <string>
 #include <map>
 #include <fstream>
-const char *const RED = "\e[1;31m";
-const char *const BLUE = "\e[1;34m";
-const char *const GREEN = "\e[1;32m";
-const char *const WHITE = "\e[1;37m";
-const char *const PURPLE = "\e[1;35m";
+#include <algorithm>
+#include <ios>
+#include <iomanip>
+
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+// 文字颜色
+#define ANSI_COLOR_RESET "\e[0m"
+#define ANSI_COLOR_BLACK "\e[30m"
+#define ANSI_COLOR_RED "\e[31m"
+#define ANSI_COLOR_GREEN "\e[32m"
+#define ANSI_COLOR_YELLOW "\e[33m"
+#define ANSI_COLOR_BLUE "\e[34m"
+#define ANSI_COLOR_MAGENTA "\e[35m"
+#define ANSI_COLOR_CYAN "\e[36m"
+#define ANSI_COLOR_WHITE "\e[37m"
+enum class LogLevel : unsigned char
+{
+    Error,
+    Warn,
+    Info,
+    Debug,
+    Trace
+};
 
 struct Logger
 {
@@ -26,12 +46,41 @@ class Wlogger
 {
 public:
     static Wlogger *get_instance();
+
+private:
     void init_log_config();
+    void print_config_info();
 
 private:
     Logger logger;
 
 private:
     Wlogger();
-    ~Wlogger();
+    ~Wlogger() = default;
+    Wlogger(const Wlogger &other) = delete;
+    Wlogger &operator=(const Wlogger &other) = delete;
+};
+
+class LogCapture
+{
+public:
+    LogCapture(const LogLevel level, const std::string &file, const uint32_t line, const std::string &function,
+               const std::string &check_expression = "");
+    ~LogCapture();
+
+public:
+    std::ostringstream &stream();
+
+private:
+    std::string get_log_time();
+    std::string get_file_line_func();
+
+private:
+    std::ostringstream sstream_;
+
+    LogLevel level_;
+    std::string file_;
+    uint32_t line_;
+    std::string func_;
+    std::string check_expression_;
 };
