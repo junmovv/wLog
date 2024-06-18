@@ -12,6 +12,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <string.h>
 // 文字颜色
 #define ANSI_COLOR_RESET "\e[0m"
 #define ANSI_COLOR_BLACK "\e[30m"
@@ -49,7 +52,7 @@ class Wlogger
 {
 public:
     static Wlogger *get_instance();
-    void log(const char *fmt, ...);
+    void log(LogLevel level, const char *fmt, ...);
 
 private:
     void init_log_config();
@@ -60,6 +63,9 @@ private:
     std::string get_log_terminal_switch() const;
 
     std::string get_file_path_name() const;
+    void set_file_path_mode();
+    bool get_file_type(LogLevel fileLevel) const;
+    bool get_terminal_type(LogLevel terminalLevel) const;
 
     void write_log_to_file(const char *fmt, va_list args);
 
@@ -69,11 +75,15 @@ private:
     std::mutex fileLock_;
     Logger logger;
 
+    std::ofstream file_;
+    unsigned int fileType_;
+    unsigned int terminalType_;
+
     std::queue<std::string> messageQueue_;
 
 private:
     Wlogger();
-    ~Wlogger() = default;
+    ~Wlogger();
     Wlogger(const Wlogger &other) = delete;
     Wlogger &operator=(const Wlogger &other) = delete;
 };

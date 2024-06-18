@@ -1,7 +1,7 @@
 #include "wLog.h"
 
 const char *leverStr[5] =
-    {"[ERR]", "[WARN]", "[INFO]", "[DEBUG]", "[TRACE]"};
+    {"[ERROR]", "[WARN] ", "[INFO] ", "[DEBUG]", "[TRACE]"};
 
 Wlogger *Wlogger::get_instance()
 {
@@ -9,9 +9,23 @@ Wlogger *Wlogger::get_instance()
     return &singleObject;
 }
 
-Wlogger::Wlogger()
+Wlogger::Wlogger() : fileType_(0), terminalType_(0)
 {
     this->init_log_config();
+}
+
+Wlogger::~Wlogger()
+{
+    while (!messageQueue_.empty())
+    {
+        file_ << messageQueue_.front();
+        messageQueue_.pop();
+    }
+
+    if (file_.is_open())
+    {
+        file_.close();
+    }
 }
 
 void Wlogger::init_log_config()
@@ -57,7 +71,53 @@ void Wlogger::init_log_config()
         }
     }
     file.close();
+    ::remove(get_file_path_name().c_str());
+    set_file_path_mode();
     print_config_info();
+}
+
+void Wlogger::set_file_path_mode()
+{
+    int ret = mkdir(logger.logFilePath.c_str(), S_IRWXU | S_IRWXG | S_IXOTH);
+    if (ret != 0 && errno != EEXIST)
+    {
+        printf("mkdir fail, dir:%s,err:%s \n", logger.logFilePath.c_str(), strerror(errno));
+    }
+
+    file_.open(get_file_path_name());
+
+    std::vector<int> terminalState;
+    std::istringstream ss1(logger.logOutputLevelTerminal);
+    std::string token1;
+    while (std::getline(ss1, token1, ','))
+    {
+        terminalState.push_back(std::stoi(token1));
+    }
+    for (int index : terminalState)
+    {
+        terminalType_ |= (1 << index);
+    }
+
+    std::vector<int> fileState;
+    std::istringstream ss2(logger.logOutputLevelFile);
+    std::string token2;
+    while (std::getline(ss2, token2, ','))
+    {
+        fileState.push_back(std::stoi(token2));
+    }
+    for (int index : fileState)
+    {
+        fileType_ |= (1 << index);
+    }
+}
+
+bool Wlogger::get_file_type(LogLevel fileLevel) const
+{
+    return fileType_ & (1 << static_cast<int>(fileLevel));
+}
+bool Wlogger::get_terminal_type(LogLevel terminalLevel) const
+{
+    return terminalType_ & (1 << static_cast<int>(terminalLevel));
 }
 
 void Wlogger::print_config_info()
@@ -141,12 +201,12 @@ void Wlogger::write_log_to_file(const char *fmt, va_list args)
     }
     else
     {
-        std::string filePashAndName = get_file_path_name();
+
         std::lock_guard<std::mutex> locker(fileLock_);
-        std::ofstream file;
-        file.open(filePashAndName, std::ios::app | std::ios::out);
-        file << buf;
-        file.close();
+        if (file_.is_open())
+        {
+            file_ << buf;
+        }
     }
 }
 
@@ -156,27 +216,24 @@ void Wlogger::insert_queue(const char *buf)
     messageQueue_.push(buf);
     if (messageQueue_.size() > 5000)
     {
-        std::string filePashAndName = get_file_path_name();
-        std::ofstream file;
-        file.open(filePashAndName, std::ios::app | std::ios::out);
-        while (!messageQueue_.empty())
+
+        while (!messageQueue_.empty() && file_.is_open())
         {
-            file << messageQueue_.front();
+            file_ << messageQueue_.front();
             messageQueue_.pop();
         }
-        file.close();
     }
 }
-void Wlogger::log(const char *fmt, ...)
+void Wlogger::log(LogLevel level, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    if (get_log_terminal_switch() == "on")
+    if (get_log_terminal_switch() == "on" && get_terminal_type(level))
     {
         vprintf(fmt, args);
     }
 
-    if (get_log_file_switch() == "on")
+    if (get_log_file_switch() == "on" && get_file_type(level))
     {
         write_log_to_file(fmt, args);
     }
@@ -193,5 +250,5 @@ std::string LogCapture::get_file_line_func()
 LogCapture::~LogCapture()
 {
     std::string str = leverStr[static_cast<unsigned char>(level_)] + get_log_time() + get_file_line_func() + sstream_.str() + "\n";
-    Wlogger::get_instance()->log(str.c_str());
+    Wlogger::get_instance()->log(level_, str.c_str());
 }

@@ -1,0 +1,51 @@
+[ERROR][2024-06-18 22:34:47.585046][113519][main.cpp:9][main] hello world
+[WARN] [2024-06-18 22:34:47.585346][113519][main.cpp:10][main] hello world
+[INFO] [2024-06-18 22:34:47.585353][113519][main.cpp:11][main] hello world
+[DEBUG][2024-06-18 22:34:47.585359][113519][main.cpp:12][main] hello world
+[TRACE][2024-06-18 22:34:47.585362][113519][main.cpp:13][main] hello world
+[ERROR][2024-06-18 22:34:47.585365][113519][main.cpp:9][main] hello world
+[WARN] [2024-06-18 22:34:47.585368][113519][main.cpp:10][main] hello world
+[INFO] [2024-06-18 22:34:47.585370][113519][main.cpp:11][main] hello world
+[DEBUG][2024-06-18 22:34:47.585374][113519][main.cpp:12][main] hello world
+[TRACE][2024-06-18 22:34:47.585376][113519][main.cpp:13][main] hello world
+[ERROR][2024-06-18 22:34:47.585379][113519][main.cpp:9][main] hello world
+[WARN] [2024-06-18 22:34:47.585393][113519][main.cpp:10][main] hello world
+[INFO] [2024-06-18 22:34:47.585396][113519][main.cpp:11][main] hello world
+[DEBUG][2024-06-18 22:34:47.585400][113519][main.cpp:12][main] hello world
+[TRACE][2024-06-18 22:34:47.585402][113519][main.cpp:13][main] hello world
+[ERROR][2024-06-18 22:34:47.585405][113519][main.cpp:9][main] hello world
+[WARN] [2024-06-18 22:34:47.585408][113519][main.cpp:10][main] hello world
+[INFO] [2024-06-18 22:34:47.585411][113519][main.cpp:11][main] hello world
+[DEBUG][2024-06-18 22:34:47.585414][113519][main.cpp:12][main] hello world
+[TRACE][2024-06-18 22:34:47.585416][113519][main.cpp:13][main] hello world
+[ERROR][2024-06-18 22:34:47.585419][113519][main.cpp:9][main] hello world
+[WARN] [2024-06-18 22:34:47.585422][113519][main.cpp:10][main] hello world
+[INFO] [2024-06-18 22:34:47.585424][113519][main.cpp:11][main] hello world
+[DEBUG][2024-06-18 22:34:47.585428][113519][main.cpp:12][main] hello world
+[TRACE][2024-06-18 22:34:47.585430][113519][main.cpp:13][main] hello world
+[ERROR][2024-06-18 22:34:47.585432][113519][main.cpp:9][main] hello world
+[WARN] [2024-06-18 22:34:47.585435][113519][main.cpp:10][main] hello world
+[INFO] [2024-06-18 22:34:47.585438][113519][main.cpp:11][main] hello world
+[DEBUG][2024-06-18 22:34:47.585554][113519][main.cpp:12][main] hello world
+[TRACE][2024-06-18 22:34:47.585558][113519][main.cpp:13][main] hello world
+[ERROR][2024-06-18 22:34:47.585560][113519][main.cpp:9][main] hello world
+[WARN] [2024-06-18 22:34:47.585564][113519][main.cpp:10][main] hello world
+[INFO] [2024-06-18 22:34:47.585569][113519][main.cpp:11][main] hello world
+[DEBUG][2024-06-18 22:34:47.585581][113519][main.cpp:12][main] hello world
+[TRACE][2024-06-18 22:34:47.585583][113519][main.cpp:13][main] hello world
+[ERROR][2024-06-18 22:34:47.585586][113519][main.cpp:9][main] hello world
+[WARN] [2024-06-18 22:34:47.585600][113519][main.cpp:10][main] hello world
+[INFO] [2024-06-18 22:34:47.585603][113519][main.cpp:11][main] hello world
+[DEBUG][2024-06-18 22:34:47.585618][113519][main.cpp:12][main] hello world
+[TRACE][2024-06-18 22:34:47.585621][113519][main.cpp:13][main] hello world
+[ERROR][2024-06-18 22:34:47.585624][113519][main.cpp:9][main] hello world
+[WARN] [2024-06-18 22:34:47.585627][113519][main.cpp:10][main] hello world
+[INFO] [2024-06-18 22:34:47.585630][113519][main.cpp:11][main] hello world
+[DEBUG][2024-06-18 22:34:47.585633][113519][main.cpp:12][main] hello world
+[TRACE][2024-06-18 22:34:47.585635][113519][main.cpp:13][main] hello world
+[ERROR][2024-06-18 22:34:47.585638][113519][main.cpp:9][main] hello world
+[WARN] [2024-06-18 22:34:47.585641][113519][main.cpp:10][main] hello world
+[INFO] [2024-06-18 22:34:47.585643][113519][main.cpp:11][main] hello world
+[DEBUG][2024-06-18 22:34:47.585647][113519][main.cpp:12][main] hello world
+[TRACE][2024-06-18 22:34:47.585649][113519][main.cpp:13][main] hello world
+[INFO] [2024-06-18 22:34:47.585654][113519][main.cpp:17][main] 0
