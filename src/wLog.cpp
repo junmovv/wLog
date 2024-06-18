@@ -252,3 +252,21 @@ LogCapture::~LogCapture()
     std::string str = leverStr[static_cast<unsigned char>(level_)] + get_log_time() + get_file_line_func() + sstream_.str() + "\n";
     Wlogger::get_instance()->log(level_, str.c_str());
 }
+
+void Wlogger::log_c(LogLevel level, const char *fmt, ...)
+{
+    std::string str = leverStr[static_cast<unsigned char>(level_)] + get_log_time() + get_file_line_func() + fmt;
+    va_list args;
+    va_start(args, fmt);
+    if (get_log_terminal_switch() == "on" && get_terminal_type(level))
+    {
+        vprintf(fmt, args);
+    }
+
+    if (get_log_file_switch() == "on" && get_file_type(level))
+    {
+        write_log_to_file(fmt, args);
+    }
+
+    va_end(args);
+}

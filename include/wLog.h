@@ -53,6 +53,7 @@ class Wlogger
 public:
     static Wlogger *get_instance();
     void log(LogLevel level, const char *fmt, ...);
+    void log_c(LogLevel level, const char *fmt, ...);
 
 private:
     void init_log_config();
