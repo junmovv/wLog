@@ -1,4 +1,6 @@
-#include "logger.h"
+#include "wLog.hpp"
+
+extern void print();
 
 int main()
 {
@@ -17,9 +19,10 @@ int main()
         LogInfo("nihao");
         LogDebug("nihao");
         LogTrace("nihao");
+        print();
     }
     auto end = std::chrono::steady_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
+    // std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
 
     return 0;
 }
