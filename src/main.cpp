@@ -7,12 +7,19 @@ int main()
     while (n--)
     {
         LOG_ERROR << "hello world";
-        LogInfo("nihao shijie\n");
+        LOG_WARN << "hello world";
+        LOG_INFO << "hello world";
+        LOG_DEBUG << "hello world";
+        LOG_TRACE << "hello world";
+
+        LogError("nihao");
+        LogWarn("nihao");
+        LogInfo("nihao");
+        LogDebug("nihao");
+        LogTrace("nihao");
     }
     auto end = std::chrono::steady_clock::now();
-    LOG_INFO << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-
-    LogInfo("nihao shijie\n");
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
 
     return 0;
 }

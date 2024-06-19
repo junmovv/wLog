@@ -148,25 +148,15 @@ void Wlogger::print_config_info()
     std::cout << ANSI_COLOR_RESET << std::endl;
 }
 
-LogCapture::LogCapture(const LogLevel level, const std::string &file, const uint32_t line,
-                       const std::string &function, const std::string &check_expression)
-    : level_(level), file_(file), line_(line), func_(function), check_expression_(check_expression)
-{
-}
-std::ostringstream &LogCapture::stream()
-{
-    return sstream_;
-}
-
-std::string LogCapture::get_log_time()
+std::string Wlogger::get_log_time()
 {
     struct timeval now;
     ::gettimeofday(&now, nullptr);
     struct tm tm_now;
     ::localtime_r(&now.tv_sec, &tm_now);
     char time_str[100] = {0};
-    snprintf(time_str, sizeof(time_str), "[%04d-%02d-%02d %02d:%02d:%02d.%06ld][%d]", tm_now.tm_year + 1900,
-             tm_now.tm_mon + 1, tm_now.tm_mday, tm_now.tm_hour, tm_now.tm_min, tm_now.tm_sec, now.tv_usec, ::getpid());
+    snprintf(time_str, sizeof(time_str), "[%04d-%02d-%02d %02d:%02d:%02d.%03ld][%d]", tm_now.tm_year + 1900,
+             tm_now.tm_mon + 1, tm_now.tm_mday, tm_now.tm_hour, tm_now.tm_min, tm_now.tm_sec, now.tv_usec / 1000, ::getpid());
     return time_str;
 }
 
@@ -226,47 +216,42 @@ void Wlogger::insert_queue(const char *buf)
 }
 void Wlogger::log(LogLevel level, const char *fmt, ...)
 {
+    std::string str = leverStr[static_cast<int>(level)] + get_log_time() + fmt + '\n';
     va_list args;
-    va_start(args, fmt);
+
     if (get_log_terminal_switch() == "on" && get_terminal_type(level))
     {
-        vprintf(fmt, args);
+        va_start(args, fmt);
+        vprintf(str.c_str(), args);
+        va_end(args);
     }
 
     if (get_log_file_switch() == "on" && get_file_type(level))
     {
-        write_log_to_file(fmt, args);
+        va_start(args, fmt);
+        write_log_to_file(str.c_str(), args);
+        va_end(args);
     }
-
-    va_end(args);
 }
+LogCapture::LogCapture(const LogLevel level, const std::string &file, const uint32_t line,
+                       const std::string &function, const std::string &check_expression)
+    : level_(level), file_(file), line_(line), func_(function), check_expression_(check_expression)
+{
+}
+
+LogCapture::~LogCapture()
+{
+    Wlogger::get_instance()->log(level_, "[%s:%d][%s] %s", file_.c_str(), line_, func_.c_str(), sstream_.str().c_str());
+}
+
+std::ostringstream &LogCapture::stream()
+{
+    return sstream_;
+}
+
 std::string LogCapture::get_file_line_func()
 {
     std::ostringstream ostr;
     ostr << "[" << file_ << ":" << line_ << "]" << "[" << func_ << "] ";
     return ostr.str();
-}
-
-LogCapture::~LogCapture()
-{
-    std::string str = leverStr[static_cast<unsigned char>(level_)] + get_log_time() + get_file_line_func() + sstream_.str() + "\n";
-    Wlogger::get_instance()->log(level_, str.c_str());
-}
-
-void Wlogger::log_c(LogLevel level, const char *fmt, ...)
-{
-    std::string str = leverStr[static_cast<unsigned char>(level_)] + get_log_time() + get_file_line_func() + fmt;
-    va_list args;
-    va_start(args, fmt);
-    if (get_log_terminal_switch() == "on" && get_terminal_type(level))
-    {
-        vprintf(fmt, args);
-    }
-
-    if (get_log_file_switch() == "on" && get_file_type(level))
-    {
-        write_log_to_file(fmt, args);
-    }
-
-    va_end(args);
 }

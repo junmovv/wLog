@@ -53,7 +53,6 @@ class Wlogger
 public:
     static Wlogger *get_instance();
     void log(LogLevel level, const char *fmt, ...);
-    void log_c(LogLevel level, const char *fmt, ...);
 
 private:
     void init_log_config();
@@ -71,6 +70,8 @@ private:
     void write_log_to_file(const char *fmt, va_list args);
 
     void insert_queue(const char *buf);
+
+     std::string get_log_time();
 
 private:
     std::mutex fileLock_;
@@ -100,7 +101,7 @@ public:
     std::ostringstream &stream();
 
 private:
-    std::string get_log_time();
+   
     std::string get_file_line_func();
 
 private:
