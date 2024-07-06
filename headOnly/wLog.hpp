@@ -39,7 +39,6 @@ static const char *leverStr[5] =
 
 struct Logger
 {
-    std::string logSwitch;              // 日志开关
     std::string logFileSwitch;          // 是否写入文件
     std::string logTerminalSwitch;      // 是否打印到终端
     std::string logFileQueueSwitch;     // 是否开启队列策略
@@ -59,14 +58,15 @@ public:
 
 private:
     void init_log_config();
+    void use_default_config();
     void print_config_info();
-    std::string get_log_switch() const;
 
     std::string get_log_file_switch() const;
     std::string get_log_terminal_switch() const;
 
     std::string get_file_path_name() const;
-    void set_file_path_mode();
+    void open_log_file();
+    void set_file_terminal_type();
     bool get_file_type(LogLevel fileLevel) const;
     bool get_terminal_type(LogLevel terminalLevel) const;
 
@@ -145,7 +145,6 @@ inline void Wlogger::init_log_config()
 {
     char strc[128] = {0};
     std::map<std::string, std::string *> logConfInfo;
-    logConfInfo["logSwitch"] = &this->logger.logSwitch;
     logConfInfo["logFileSwitch"] = &this->logger.logFileSwitch;
     logConfInfo["logTerminalSwitch"] = &this->logger.logTerminalSwitch;
     logConfInfo["logFileQueueSwitch"] = &this->logger.logFileQueueSwitch;
@@ -155,50 +154,62 @@ inline void Wlogger::init_log_config()
     logConfInfo["logBehavior"] = &this->logger.logBehavior;
     logConfInfo["logOutputLevelFile"] = &this->logger.logOutputLevelFile;
     logConfInfo["logOutputLevelTerminal"] = &this->logger.logOutputLevelTerminal;
-    std::ifstream file("./config/logConf.conf");
 
+    std::ifstream file("./config/logConf.conf");
     if (!file.is_open())
     {
-        std::cout << "File open failed" << std::endl;
-        return;
-    }
-    std::string str;
-    while (std::getline(file, str))
-    {
-        if (!str.length())
-        {
-            continue;
-        }
 
-        std::string str_copy = str;
-        str_copy.erase(std::remove(str_copy.begin(), str_copy.end(), ' '), str_copy.end());
-        if (str_copy[0] != '#')
+        std::cout << "[" << __FILE__ << ":" << __LINE__ << "]" << "[" << __FUNCTION__ << "] " << "File open failed  use default config  " << std::endl;
+        use_default_config();
+    }
+    else
+    {
+        std::string str;
+        while (std::getline(file, str))
         {
-            sscanf(str_copy.data(), "%[^=]", strc);
-            auto iter = logConfInfo.find(strc);
-            if (iter != logConfInfo.end())
+            if (!str.length())
             {
-                sscanf(str_copy.data(), "%*[^=]=%s", strc);
-                *iter->second = strc;
+                continue;
+            }
+
+            std::string str_copy = str;
+            str_copy.erase(std::remove(str_copy.begin(), str_copy.end(), ' '), str_copy.end());
+            if (str_copy[0] != '#')
+            {
+                sscanf(str_copy.data(), "%[^=]", strc);
+                auto iter = logConfInfo.find(strc);
+                if (iter != logConfInfo.end())
+                {
+                    sscanf(str_copy.data(), "%*[^=]=%s", strc);
+                    *iter->second = strc;
+                }
             }
         }
+        file.close();
+        open_log_file();
     }
-    file.close();
-    ::remove(get_file_path_name().c_str());
-    set_file_path_mode();
+
+    set_file_terminal_type();
     print_config_info();
 }
 
-inline void Wlogger::set_file_path_mode()
+inline void Wlogger::use_default_config()
+{
+    logger.logTerminalSwitch = "on";
+    logger.logOutputLevelTerminal = "0";
+}
+
+inline void Wlogger::open_log_file()
 {
     int ret = mkdir(logger.logFilePath.c_str(), S_IRWXU | S_IRWXG | S_IXOTH);
     if (ret != 0 && errno != EEXIST)
     {
         printf("mkdir fail, dir:%s,err:%s \n", logger.logFilePath.c_str(), strerror(errno));
     }
-
     file_.open(get_file_path_name());
-
+}
+inline void Wlogger::set_file_terminal_type()
+{
     std::vector<int> terminalState;
     std::istringstream ss1(logger.logOutputLevelTerminal);
     std::string token1;
@@ -245,15 +256,19 @@ inline void Wlogger::print_config_info()
         }
     }
     std::cout << ANSI_COLOR_RESET << std::endl;
-    std::cout << ANSI_COLOR_GREEN << std::left << std::setw(25) << "  日志开关　　" << logger.logSwitch << ANSI_COLOR_RESET << std::endl;
-    std::cout << ANSI_COLOR_GREEN << std::left << std::setw(25) << "  文件输出　　" << logger.logFileSwitch << ANSI_COLOR_RESET << std::endl;
+    std::cout << ANSI_COLOR_GREEN << std::left << std::setw(25) << "  文件输出开关" << logger.logFileSwitch << ANSI_COLOR_RESET << std::endl;
     std::cout << ANSI_COLOR_GREEN << std::left << std::setw(25) << "  终端输出开关" << logger.logTerminalSwitch << ANSI_COLOR_RESET << std::endl;
     std::cout << ANSI_COLOR_GREEN << std::left << std::setw(25) << "  文件输出等级" << logger.logOutputLevelFile << ANSI_COLOR_RESET << std::endl;
     std::cout << ANSI_COLOR_GREEN << std::left << std::setw(25) << "  终端输出等级" << logger.logOutputLevelTerminal << ANSI_COLOR_RESET << std::endl;
     std::cout << ANSI_COLOR_GREEN << std::left << std::setw(25) << "  日志队列策略" << logger.logFileQueueSwitch << ANSI_COLOR_RESET << std::endl;
-    std::cout << ANSI_COLOR_GREEN << std::left << std::setw(25) << "  日志文件名称" << logger.logName << ".log" << ANSI_COLOR_RESET << std::endl;
+    std::string logName;
+    if (!logger.logName.empty())
+    {
+        logName = logger.logName + ".log";
+    }
+    std::cout << ANSI_COLOR_GREEN << std::left << std::setw(25) << "  日志文件名称" << logName << ANSI_COLOR_RESET << std::endl;
     std::cout << ANSI_COLOR_GREEN << std::left << std::setw(25) << "  日志保存路径" << logger.logFilePath << ANSI_COLOR_RESET << std::endl;
-    std::cout << ANSI_COLOR_GREEN << std::left << std::setw(25) << "  日志文件大小" << logger.logMixSize << "M" << ANSI_COLOR_RESET << std::endl;
+    std::cout << ANSI_COLOR_GREEN << std::left << std::setw(25) << "  日志文件大小" << logger.logMixSize << ANSI_COLOR_RESET << std::endl;
     for (int i = 0; i < logger.logFilePath.size() + 25; i++)
     {
         std::cout << ANSI_COLOR_GREEN << "-";
@@ -273,11 +288,6 @@ inline std::string Wlogger::get_log_time()
     return time_str;
 }
 
-inline std::string Wlogger::get_log_switch() const
-{
-    return logger.logSwitch;
-}
-
 inline std::string Wlogger::get_log_file_switch() const
 {
     return logger.logFileSwitch;
@@ -290,7 +300,7 @@ inline std::string Wlogger::get_log_terminal_switch() const
 
 inline std::string Wlogger::get_file_path_name() const
 {
-    return logger.logFilePath + "/" + logger.logName + ".log ";
+    return logger.logFilePath + "/" + logger.logName + ".log";
 }
 
 inline void Wlogger::write_log_to_file(const char *fmt, va_list args)
